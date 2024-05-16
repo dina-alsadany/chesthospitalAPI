@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Raylab;
 use App\Models\Account;
-use App\Models\Employee;
 use App\Models\Patient;
-use App\Models\MedicalRecord;
+use App\Models\Employee;
+use App\Models\pharmacy;
+use App\Models\register;
 use App\Models\DrReports;
+use App\Models\prescribe;
+use App\Models\pharmacist;
 use Illuminate\Http\Request;
+use App\Models\MedicalRecord;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -22,7 +27,7 @@ class AuthController extends Controller
      * @return void
      */
     public function __construct() {
-        $this->middleware('auth:api', ['except' => ['login', 'account','employee','patient','medical_record','dr_reports']]);
+        $this->middleware('auth:api', ['except' => ['login', 'account','employee','patient','medical_record','dr_reports','raylab','register','prescribe','pharmacy','pharmacist']]);
     }
     /**
      * Get a JWT via given credentials.
@@ -357,6 +362,124 @@ public function dr_reports(Request $request)
         'data' => [
             'message' => 'Dr Report successfully registered',
             'dr_report' => $drReport,
+        ],
+    ], 201);
+}
+ // Create the new Raylab
+ public function raylab(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'lab_no' => 'string|required',
+        'lab_Equipment' => 'string|required',
+        'hos_ID' => 'exists:hospital,hos_ID|nullable',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'fail',
+            'data' => $validator->errors()->toJson(),
+        ], 400);
+    }
+    $raylab = Raylab::create($validator->validated());
+    return response()->json([
+        'status' => 'success',
+        'data' => [
+            'message' => 'Raylab record successfully inserted',
+            'raylab' => $raylab,
+        ],
+    ], 201);
+}
+//register
+public function register(Request $request){
+    $validator = Validator::make($request->all(), [
+        'recep_id' => 'exists:receptionist,recep_id|nullable',
+        'pat_id' => 'exists:patient,Pat_ID|nullable',
+        'Regtime' => 'required|date_format:H:i:s',
+        'Regdate' => 'required|date_format:Y-m-d',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'fail',
+            'data' => $validator->errors()->toJson(),
+        ], 400);
+
+}
+$register = register::create($validator->validated());
+    return response()->json([
+        'status' => 'success',
+        'data' => [
+            'message' => 'register record successfully inserted',
+            'register' => $register,
+        ],
+    ], 201);
+}
+//pharmacy
+public function pharmacy(Request $request){
+    $validator = Validator::make($request->all(), [
+        'Mediciene_Availabilty' => 'required|boolean',
+        'hos_ID' => 'exists:hospital,hos_ID|nullable',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'fail',
+            'data' => $validator->errors()->toJson(),
+        ], 400);
+    }
+    $pharmacy = pharmacy::create($validator->validated());
+
+    return response()->json([
+        'status' => 'success',
+        'data' => [
+            'message' => 'Record successfully inserted',
+            'pharmacy' => $pharmacy,
+        ],
+    ], 201);
+}
+//pharmacist
+public function pharmacist(Request $request){
+    $validator = Validator::make($request->all(), [
+        'EmployeeID' => 'exists:employee,EmployeeID|nullable',
+        'license_number' => 'required|string',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'fail',
+            'data' => $validator->errors()->toJson(),
+        ], 400);
+    }
+    $pharmacist = pharmacist::create($validator->validated());
+    return response()->json([
+        'status' => 'success',
+        'data' => [
+            'message' => 'Record successfully inserted',
+            'pharmacist' => $pharmacist,
+        ],
+    ], 201);
+}
+//prescribe
+public function prescribe(Request $request){
+    $validator = Validator::make($request->all(), [
+        'prescribe_Date' => 'required|date_format:Y-m-d',
+        'prescribe_Time' => 'required|date_format:H:i:s',
+        'pharm_id' => 'exists:pharmacist,pharm_id|nullable',
+        'Pat_ID' => 'exists:patient,Pat_ID|nullable',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'fail',
+            'data' => $validator->errors()->toJson(),
+        ], 400);
+    }
+    $newRecord = prescribe::create($validator->validated());
+    return response()->json([
+        'status' => 'success',
+        'data' => [
+            'message' => 'Record successfully inserted',
+            'record' => $newRecord,
         ],
     ], 201);
 }

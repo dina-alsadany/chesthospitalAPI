@@ -10,7 +10,7 @@ class Patient extends Model
     use HasFactory;
 
     protected $table = 'patient';
-    protected $primaryKey = 'Pat_ID'; // Remove the space
+    protected $primaryKey = 'Pat_ID'; 
     protected $fillable = [
         'F_Name',
         'L_Name',
@@ -32,8 +32,6 @@ class Patient extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
-    // If EmployeeID is not an auto-incrementing integer, you might need to specify it as the primary key
     public function getJWTIdentifier()
     {
         return $this->getKey();

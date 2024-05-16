@@ -5,19 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class DrReports extends Model
+class register extends Model
 {
     use HasFactory;
-    protected $table = 'dr_reports';
-    protected $primaryKey = 'DReport_ID';
+    protected $table = 'register';
+    protected $primaryKey = 'Register_id';
     protected $fillable = [
-        'DReTime',
-        'Result',
-        'RDescription',
-        'RDate',
-        'RName',
-        'DoctorID',
-
+        'recep_id',
+        'pat_id',
+        "Regtime",
+        "Regdate",
     ];
 
     protected $casts = [
@@ -25,7 +22,7 @@ class DrReports extends Model
         'updated_at' => 'datetime',
     ];
 
-       public function getJWTIdentifier()
+    public function getJWTIdentifier()
     {
         return $this->getKey();
     }

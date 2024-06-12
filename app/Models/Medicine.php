@@ -5,29 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class DrReports extends Model
+class Medicine extends Model
 {
     use HasFactory;
-    protected $table = 'dr_reports';
-    protected $primaryKey = 'DReport_ID';
+    protected $table = 'medicine';
+    protected $primaryKey = 'Medicine_ID';
     protected $fillable = [
-        'RDescription',
-        'diagnoseillness',
-        'DoctorID',
-        'patient_id',
-
+        'MedName',
+        'MDescription',
+        'Dosage_instructions',
+        'Pharmacy_ID',
     ];
- // In DrReports model
- public function patient()
- {
-     return $this->belongsTo(Patient::class, 'patient_id');
- }
+
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
-       public function getJWTIdentifier()
+    public function getJWTIdentifier()
     {
         return $this->getKey();
     }
@@ -37,3 +31,4 @@ class DrReports extends Model
         return [];
     }
 }
+

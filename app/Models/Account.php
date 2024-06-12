@@ -24,7 +24,6 @@ class Account extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $fillable = [
-        'Acc_id',
         'acc_password',
         'acc_email',
         'acc_type',
@@ -84,5 +83,31 @@ class Account extends Authenticatable implements JWTSubject
     public function getAuthPassword()
     {
         return $this->acc_password;
+    }
+    public function isAdmin()
+    {
+        // Assuming 'acc_type' column is used to differentiate account types
+        return $this->acc_type === 'admin';
+    }
+    public function isDoctor()
+    {
+        // Assuming 'acc_type' column is used to differentiate account types
+        return $this->acc_type === 'doctor';
+    }
+
+    public function isReceptionist()
+    {
+        // Assuming 'acc_type' column is used to differentiate account types
+        return $this->acc_type === 'receptionist';
+    }
+    public function isNurse()
+    {
+        // Assuming 'acc_type' column is used to differentiate account types
+        return $this->acc_type === 'nurse';
+    }
+    public function isPharmacy()
+    {
+        // Assuming 'acc_type' column is used to differentiate account types
+        return $this->acc_type === 'pharmacy';
     }
 }

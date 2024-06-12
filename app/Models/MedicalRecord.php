@@ -16,9 +16,13 @@ class MedicalRecord extends Model
         'IDDM',
         'EX_Clinic',
         'Bp',
-        'admin_id',
-        'admin_role',
+        
     ];
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class, 'patient_id');
+    }
+
 
     protected $casts = [
         'created_at' => 'datetime',

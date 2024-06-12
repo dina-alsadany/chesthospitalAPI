@@ -13,9 +13,24 @@ class register extends Model
     protected $fillable = [
         'recep_id',
         'pat_id',
-        "Regtime",
-        "Regdate",
+        'Regtime',
+        'Regdate',
     ];
+    // public function receptionist()
+    // {
+    //     return $this->belongsTo(receptionist::class, 'recep_id');
+    // }
+    // public function patient()
+    // {
+    //     return $this->belongsTo(Patient::class, 'pat_id');
+    // }
+    public function patient() {
+        return $this->hasOne(Patient::class, 'UserID'); // assuming 'UserID' links users to patients
+    }
+
+    public function receptionist() {
+        return $this->hasOne(Receptionist::class, 'UserID'); // assuming 'UserID' links users to receptionists
+    }
 
     protected $casts = [
         'created_at' => 'datetime',

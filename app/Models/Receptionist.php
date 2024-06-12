@@ -5,32 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Patient extends Model
+class Receptionist extends Model
 {
     use HasFactory;
-
-    protected $table = 'patient';
-    protected $primaryKey = 'Pat_ID';
+    protected $table = 'receptionist';
+    protected $primaryKey = 'recep_id';
     protected $fillable = [
-        'name',
-        'Phone_Number',
-        'address',
-        // 'Street',
-        // 'Email',
-        // 'AccHome',
-        // 'Accwork',
-        // 'Accstreet',
-        'Medical_History',
-        // 'hos_ID',
-        // 'DoctorID',
-        // 'NurseID',
-        // 'MR_ID',
-        'national_id',
-        'dateOfBirth'
+        'experience_year',
+        'EmployeeID',
+
     ];
     public function register()
     {
-        return $this->hasOne(register::class, 'pat_id');
+        return $this->hasOne(register::class, 'recep_id');
     }
     protected $casts = [
         'created_at' => 'datetime',

@@ -16,7 +16,7 @@ class User extends Authenticatable
      *
      * @var string
      */
-    protected $table = 'account';
+    protected $table = 'employee';
 
     /**
      * The attributes that are mass assignable.
@@ -24,14 +24,19 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'Acc_id',
-        'acc_password',
-        'acc_email',
-        'acc_type',
-        'EmployeeID',
-        'remember_token',
-        'created_at',
-        'updated_at',
+        'Name',
+        'Address',
+        'Phone',
+        'Email',
+        'EmployeeType',
+        'shift',
+        'BIRTHDAY',
+        'password',
+        'is_admin',
+        'is_doctor',
+        'is_receptionist',
+        'is_nurse',
+        'is_pharmacy'
     ];
 
     /**

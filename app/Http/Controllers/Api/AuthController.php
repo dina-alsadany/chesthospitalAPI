@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Nurse;
+use App\Models\Doctor;
 use App\Models\Raylab;
 use App\Models\Account;
 use App\Models\Patient;
@@ -11,8 +13,11 @@ use App\Models\register;
 use App\Models\DrReports;
 use App\Models\prescribe;
 use App\Models\pharmacist;
+use App\Models\Adminstrator;
+use App\Models\Receptionist;
 use Illuminate\Http\Request;
 use App\Models\MedicalRecord;
+use App\Models\NurseSchedule;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -27,7 +32,7 @@ class AuthController extends Controller
      * @return void
      */
     public function __construct() {
-        $this->middleware('auth:api', ['except' => ['login', 'account','employee','patient','medical_record','dr_reports','raylab','register','prescribe','pharmacy','pharmacist']]);
+        $this->middleware('auth:api', ['except' => ['login', 'account']]);
     }
     /**
      * Get a JWT via given credentials.
@@ -37,8 +42,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'acc_email' => 'required|email',
-            'acc_password' => 'required|string|min:6',
+            'Email' => 'required|email',
+            'password' => 'required|string|min:6',
         ]);
 
         if ($validator->fails()) {
@@ -49,7 +54,7 @@ class AuthController extends Controller
         }
 
         // Retrieve the user by email
-        $user = Account::where('acc_email', $request->acc_email)->first();
+        $user = Account::where('acc_email', $request->Email)->first();
 
         // Check if the user exists
         if (!$user) {
@@ -57,22 +62,42 @@ class AuthController extends Controller
                 'status' => 'error',
                 'message' => 'User not found',
                 'data' => [
-                    'email' => 'The email does not exist.',],
+                    'email' => 'The email does not exist.',
+                ],
             ], 404);
         }
 
         // Attempt authentication
-        if (!auth()->attempt(['acc_email' => $request->acc_email, 'acc_password' => $request->acc_password])) {
+        if (!auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password])) {
             return response()->json([
                 'status' => 'fail',
                 'message' => 'Unauthorized',
                 'data' => [
                     'password' => 'The password is incorrect.',
-                ], ], 401);
+                ],
+            ], 401);
         }
 
-        // Authentication successful, return token
-        $token = auth()->attempt(['acc_email' => $request->acc_email, 'acc_password' => $request->acc_password]);
+        // Retrieve the employee record
+        $employee = Employee::where('Email',  $request->Email)->first();
+
+        if ($employee && $employee->EmployeeType === 'admin') {
+            // Authentication successful, return token
+            $token = auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password]);
+
+            // Return success response with token and user data
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'access_token' => $token,
+                    'token_type' => 'bearer',
+                    'expires_in' => Auth::factory()->getTTL() * 60,
+                    'user' => auth()->user(),
+                ],
+            ]);
+        }
+        elseif ($employee && $employee->EmployeeType === 'doctor') {
+            $token = auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password]);
 
         // Return success response with token and user data
         return response()->json([
@@ -83,7 +108,61 @@ class AuthController extends Controller
                 'expires_in' => Auth::factory()->getTTL() * 60,
                 'user' => auth()->user(),
             ],
-        ]);
+        ]);}
+        elseif ($employee && $employee->EmployeeType === 'receptionist') {
+            $token = auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password]);
+
+        // Return success response with token and user data
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => Auth::factory()->getTTL() * 60,
+                'user' => auth()->user(),
+            ],
+        ]);}
+        elseif ($employee && $employee->EmployeeType === 'nurse') {
+            $token = auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password]);
+
+        // Return success response with token and user data
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => Auth::factory()->getTTL() * 60,
+                'user' => auth()->user(),
+            ],
+        ]);}
+        elseif ($employee && $employee->EmployeeType === 'pharmacy') {
+            $token = auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password]);
+
+        // Return success response with token and user data
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => Auth::factory()->getTTL() * 60,
+                'user' => auth()->user(),
+            ],
+        ]);}
+        else {
+            // Attempt authentication for non-administrator users
+            $token = auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password]);
+
+            // Return success response with token and user data
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'access_token' => $token,
+                    'token_type' => 'bearer',
+                    'expires_in' => Auth::factory()->getTTL() * 60,
+                    'user' => auth()->user(),
+                ],
+            ]);
+        }
     }
 
 
@@ -94,6 +173,7 @@ class AuthController extends Controller
  */
 public function account(Request $request)
 {
+
     $validator = Validator::make($request->all(), [
         'acc_email' => [
             'required', 'email', 'max:100',
@@ -127,6 +207,7 @@ public function account(Request $request)
             'user' => $user,
         ],
     ], 201);
+
 }
 
 
@@ -200,6 +281,7 @@ public function employee(Request $request)
         'EmployeeType' => 'required|string|between:2,100',
         'shift' => 'required|string|between:2,100',
         'BIRTHDAY' => 'required|date_format:Y-m-d',
+        'password' => 'required|string|between:2,100' // Corrected password field name
     ]);
 
     if ($validator->fails()) {
@@ -210,7 +292,10 @@ public function employee(Request $request)
     }
 
     // Create the new employee
-    $employee = Employee::create($validator->validated());
+    $employee = Employee::create(array_merge(
+        $validator->validated(),
+        ['acc_password' => bcrypt($request->acc_password)]
+    ));
 
     return response()->json([
         'status' => 'success',
@@ -222,55 +307,251 @@ public function employee(Request $request)
 }
 
 
-/**
-* Register a new patient.
-*
-* @param  \Illuminate\Http\Request  $request
-* @return \Illuminate\Http\JsonResponse
-*/
-public function patient(Request $request)
-{
+// /**
+// * Register a new patient.
+// *
+// * @param  \Illuminate\Http\Request  $request
+// * @return \Illuminate\Http\JsonResponse
+// */
+// public function patient(Request $request)
+// {
+//     $validator = Validator::make($request->all(), [
+//         'F_Name' => [
+//             'required',
+//             'max:100',
+//             Rule::unique('patient')->where(function ($query) use ($request) {
+//                 return $query->where('F_Name', $request->F_Name);
+//             }),
+//         ],
+//         'L_Name' => [
+//             'required',
+//             'max:100',
+//             Rule::unique('patient')->where(function ($query) use ($request) {
+//                 return $query->where('L_Name', $request->L_Name);
+//             }),
+//         ],
+//         'Phone_Number' => [
+//             'required',
+//             'string',
+//             'min:11',
+//             Rule::unique('patient')->where(function ($query) use ($request) {
+//                 return $query->where('Phone_Number', $request->Phone_Number);
+//             }),
+//         ],
+//         'City' => 'required|string|min:6',
+//         'Street' => 'required|string|min:6',
+//         'Email' => [
+//             'required',
+//             'email',
+//             'max:100',
+//             Rule::unique('patient')->where(function ($query) use ($request) {
+//                 return $query->where('Email', $request->Email);
+//             }),
+//         ],
+//         'AccHome' => 'required|boolean',
+//         'Accwork' => 'required|boolean',
+//         'Accstreet' => 'required|boolean',
+//         'Medical_History' => 'required|string|min:6',
+//         'hos_ID'=> 'exists:hospital,hos_ID|nullable',
+//         'DoctorID'=> 'exists:doctor,DoctorID|nullable',
+//         'NurseID'=> 'exists:nurse,NurseID|nullable',
+//         'MR_ID'=> 'exists:medical_record,MR_ID|nullable',
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'fail',
+//             'data' => $validator->errors()->toJson(),
+//         ], 400);
+//     }
+
+//     // Create the new patient
+//     $patient = Patient::create($validator->validated());
+
+//     return response()->json([
+//         'status' => 'success',
+//         'data' => [
+//             'message' => 'Patient successfully registered',
+//             'patient' => $patient,
+//         ],
+//     ], 201);
+// }
+
+
+// /**
+//  * Register a new medical_record.
+//  *
+//  * @param  \Illuminate\Http\Request  $request
+//  * @return \Illuminate\Http\JsonResponse
+//  */
+// public function medical_record(Request $request)
+// {
+//     $validator = Validator::make($request->all(), [
+//         'Endemic'=> 'required|boolean',
+//         'Medicine'=> 'required|max:100',
+//         'IDDM'=> 'required|boolean',
+//         'EX_Clinic'=> 'required|boolean',
+//         'Bp'=> 'required|boolean',
+//         'admin_id' => 'nullable|exists:adminstrator,admin_id',
+//         'admin_role'=> 'required|max:100',
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'fail',
+//             'data' => $validator->errors()->toJson(),
+//         ], 400);
+//     }
+
+//     // Create the new medical record
+//     $medicalRecord = MedicalRecord::create($validator->validated());
+
+//     return response()->json([
+//         'status' => 'success',
+//         'data' => [
+//             'message' => 'Medical record successfully registered',
+//             'medical_record' => $medicalRecord,
+//         ],
+//     ], 201);
+// }
+
+
+//  // Create the new Raylab
+//  public function raylab(Request $request)
+// {
+//     $validator = Validator::make($request->all(), [
+//         'lab_no' => 'string|required',
+//         'lab_Equipment' => 'string|required',
+//         'hos_ID' => 'exists:hospital,hos_ID|nullable',
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'fail',
+//             'data' => $validator->errors()->toJson(),
+//         ], 400);
+//     }
+//     $raylab = Raylab::create($validator->validated());
+//     return response()->json([
+//         'status' => 'success',
+//         'data' => [
+//             'message' => 'Raylab record successfully inserted',
+//             'raylab' => $raylab,
+//         ],
+//     ], 201);
+// }
+// //register
+// public function register(Request $request){
+
+//     $validator = Validator::make($request->all(), [
+//         'recep_id' => 'exists:receptionist,recep_id|nullable',
+//         'pat_id' => 'exists:patient,Pat_ID|nullable',
+//         'Regtime' => 'required|date_format:H:i:s',
+//         'Regdate' => 'required|date_format:Y-m-d',
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'fail',
+//             'data' => $validator->errors()->toJson(),
+//         ], 400);
+
+// }
+// $register = register::create($validator->validated());
+//     return response()->json([
+//         'status' => 'success',
+//         'data' => [
+//             'message' => 'register record successfully inserted',
+//             'register' => $register,
+//         ],
+//     ], 201);
+// }
+
+// //prescribe
+// public function prescribe(Request $request){
+//     $validator = Validator::make($request->all(), [
+//         'prescribe_Date' => 'required|date_format:Y-m-d',
+//         'prescribe_Time' => 'required|date_format:H:i:s',
+//         'pharm_id' => 'exists:pharmacist,pharm_id|nullable',
+//         'Pat_ID' => 'exists:patient,Pat_ID|nullable',
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'fail',
+//             'data' => $validator->errors()->toJson(),
+//         ], 400);
+//     }
+//     $newRecord = prescribe::create($validator->validated());
+//     return response()->json([
+//         'status' => 'success',
+//         'data' => [
+//             'message' => 'Record successfully inserted',
+//             'record' => $newRecord,
+//         ],
+//     ], 201);
+// }
+// public function gettoken(){
+//     return csrf_token();
+// }
+// public function doctor(Request $request){
+//     $validator = Validator::make($request->all(), [
+//         'licence_number' => 'required|int',
+//         'years_experiance' => 'required|int',
+//         'Specialization' => 'required|string',
+//         'EmployeeID' => 'exists:employee,EmployeeID|nullable',
+//     ]);
+
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'fail',
+//             'data' => $validator->errors()->toJson(),
+//         ], 400);
+//     }
+//     $newRecord = Doctor::create($validator->validated());
+//     return response()->json([
+//         'status' => 'success',
+//         'data' => [
+//             'message' => 'Record successfully inserted',
+//             'record' => $newRecord,
+//         ],
+//     ], 201);
+// }
+// public function adminstrator(Request $request)
+// {
+//     $validator = Validator::make($request->all(), [
+//         'admin_role' => 'required|string',
+//         'admin_name' => 'required|string',
+//         'Acc_id' => 'required|exists:account,Acc_id|nullable',
+//         'EmployeeID' => 'required|exists:employee,EmployeeID|nullable',
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'fail',
+//             'data' => $validator->errors()->toJson(),
+//         ], 400);
+//     }
+
+//     $newRecord = Adminstrator::create($validator->validated());
+
+//     return response()->json([
+//         'status' => 'success',
+//         'data' => [
+//             'message' => 'Record successfully inserted',
+//             'record' => $newRecord,
+//         ],
+//     ], 201);
+// }
+
+
+public function nurse(Request $request){
     $validator = Validator::make($request->all(), [
-        'F_Name' => [
-            'required',
-            'max:100',
-            Rule::unique('patient')->where(function ($query) use ($request) {
-                return $query->where('F_Name', $request->F_Name);
-            }),
-        ],
-        'L_Name' => [
-            'required',
-            'max:100',
-            Rule::unique('patient')->where(function ($query) use ($request) {
-                return $query->where('L_Name', $request->L_Name);
-            }),
-        ],
-        'Phone_Number' => [
-            'required',
-            'string',
-            'min:11',
-            Rule::unique('patient')->where(function ($query) use ($request) {
-                return $query->where('Phone_Number', $request->Phone_Number);
-            }),
-        ],
-        'City' => 'required|string|min:6',
-        'Street' => 'required|string|min:6',
-        'Email' => [
-            'required',
-            'email',
-            'max:100',
-            Rule::unique('patient')->where(function ($query) use ($request) {
-                return $query->where('Email', $request->Email);
-            }),
-        ],
-        'AccHome' => 'required|boolean',
-        'Accwork' => 'required|boolean',
-        'Accstreet' => 'required|boolean',
-        'Medical_History' => 'required|string|min:6',
-        'hos_ID'=> 'exists:hospital,hos_ID|nullable',
-        'DoctorID'=> 'exists:doctor,DoctorID|nullable',
-        'NurseID'=> 'exists:nurse,NurseID|nullable',
-        'MR_ID'=> 'exists:medical_record,MR_ID|nullable',
+        'Department' => 'required|string',
+        'nursing_spectialty' => 'required|string',
+        'years_experiance' => 'required|int',
+        'EmployeeID' => 'required|exists:employee,EmployeeID|nullable',
     ]);
 
     if ($validator->fails()) {
@@ -279,169 +560,24 @@ public function patient(Request $request)
             'data' => $validator->errors()->toJson(),
         ], 400);
     }
-
-    // Create the new patient
-    $patient = Patient::create($validator->validated());
-
-    return response()->json([
-        'status' => 'success',
-        'data' => [
-            'message' => 'Patient successfully registered',
-            'patient' => $patient,
-        ],
-    ], 201);
-}
-
-
-/**
- * Register a new medical_record.
- *
- * @param  \Illuminate\Http\Request  $request
- * @return \Illuminate\Http\JsonResponse
- */
-public function medical_record(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'Endemic'=> 'required|boolean',
-        'Medicine'=> 'required|max:100',
-        'IDDM'=> 'required|boolean',
-        'EX_Clinic'=> 'required|boolean',
-        'Bp'=> 'required|boolean',
-        'admin_id' => 'nullable|exists:adminstrator,admin_id',
-        'admin_role'=> 'required|max:100',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 'fail',
-            'data' => $validator->errors()->toJson(),
-        ], 400);
-    }
-
-    // Create the new medical record
-    $medicalRecord = MedicalRecord::create($validator->validated());
-
-    return response()->json([
-        'status' => 'success',
-        'data' => [
-            'message' => 'Medical record successfully registered',
-            'medical_record' => $medicalRecord,
-        ],
-    ], 201);
-}
-
-/**
- * Register a new dr_reports.
- *
- * @param  \Illuminate\Http\Request  $request
- * @return \Illuminate\Http\JsonResponse
- */
-public function dr_reports(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'DReTime'=> 'required|date_format:H:i:s',
-        'Result'=> 'required|max:100',
-        'RDescription'=> 'required|max:100',
-        'RDate'=> 'required|date_format:Y-m-d',
-        'RName'=> 'required|max:100',
-        'DoctorID'=>'exists:doctor,DoctorID|nullable',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 'fail',
-            'data' => $validator->errors()->toJson(),
-        ], 400);
-    }
-
-    // Create the new dr_report
-    $drReport = DrReports::create($validator->validated());
-
-    return response()->json([
-        'status' => 'success',
-        'data' => [
-            'message' => 'Dr Report successfully registered',
-            'dr_report' => $drReport,
-        ],
-    ], 201);
-}
- // Create the new Raylab
- public function raylab(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'lab_no' => 'string|required',
-        'lab_Equipment' => 'string|required',
-        'hos_ID' => 'exists:hospital,hos_ID|nullable',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 'fail',
-            'data' => $validator->errors()->toJson(),
-        ], 400);
-    }
-    $raylab = Raylab::create($validator->validated());
-    return response()->json([
-        'status' => 'success',
-        'data' => [
-            'message' => 'Raylab record successfully inserted',
-            'raylab' => $raylab,
-        ],
-    ], 201);
-}
-//register
-public function register(Request $request){
-    $validator = Validator::make($request->all(), [
-        'recep_id' => 'exists:receptionist,recep_id|nullable',
-        'pat_id' => 'exists:patient,Pat_ID|nullable',
-        'Regtime' => 'required|date_format:H:i:s',
-        'Regdate' => 'required|date_format:Y-m-d',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 'fail',
-            'data' => $validator->errors()->toJson(),
-        ], 400);
-
-}
-$register = register::create($validator->validated());
-    return response()->json([
-        'status' => 'success',
-        'data' => [
-            'message' => 'register record successfully inserted',
-            'register' => $register,
-        ],
-    ], 201);
-}
-//pharmacy
-public function pharmacy(Request $request){
-    $validator = Validator::make($request->all(), [
-        'Mediciene_Availabilty' => 'required|boolean',
-        'hos_ID' => 'exists:hospital,hos_ID|nullable',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 'fail',
-            'data' => $validator->errors()->toJson(),
-        ], 400);
-    }
-    $pharmacy = pharmacy::create($validator->validated());
-
+    $newRecord = Nurse::create($validator->validated());
     return response()->json([
         'status' => 'success',
         'data' => [
             'message' => 'Record successfully inserted',
-            'pharmacy' => $pharmacy,
+            'record' => $newRecord,
         ],
     ], 201);
 }
-//pharmacist
-public function pharmacist(Request $request){
+// }
+public function nurseschedule(Request $request){
     $validator = Validator::make($request->all(), [
-        'EmployeeID' => 'exists:employee,EmployeeID|nullable',
-        'license_number' => 'required|string',
+        'NSTime' => 'required|date_format:H:i:s',
+        'StateOfHealth' => 'required|string',
+        'RDate' => 'required|date_format:Y-m-d',
+        'pat_id'  => 'exists:patient,Pat_ID|nullable',
+        'DoctorID' => 'exists:doctor,DoctorID|nullable',
+        'NurseID' => 'exists:nurse,NurseID|nullable',
     ]);
 
     if ($validator->fails()) {
@@ -450,31 +586,7 @@ public function pharmacist(Request $request){
             'data' => $validator->errors()->toJson(),
         ], 400);
     }
-    $pharmacist = pharmacist::create($validator->validated());
-    return response()->json([
-        'status' => 'success',
-        'data' => [
-            'message' => 'Record successfully inserted',
-            'pharmacist' => $pharmacist,
-        ],
-    ], 201);
-}
-//prescribe
-public function prescribe(Request $request){
-    $validator = Validator::make($request->all(), [
-        'prescribe_Date' => 'required|date_format:Y-m-d',
-        'prescribe_Time' => 'required|date_format:H:i:s',
-        'pharm_id' => 'exists:pharmacist,pharm_id|nullable',
-        'Pat_ID' => 'exists:patient,Pat_ID|nullable',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 'fail',
-            'data' => $validator->errors()->toJson(),
-        ], 400);
-    }
-    $newRecord = prescribe::create($validator->validated());
+    $newRecord = NurseSchedule::create($validator->validated());
     return response()->json([
         'status' => 'success',
         'data' => [
@@ -485,6 +597,3 @@ public function prescribe(Request $request){
 }
 
 }
-
-
-

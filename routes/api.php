@@ -4,7 +4,6 @@ use App\Http\Controllers\Simple;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AIController;
-use App\Http\Middleware\CorsMiddleware;
 use App\Http\Controllers\Api\DrController;
 use App\Http\Middleware\CheckEmployeeType;
 use App\Http\Controllers\Api\LabController;
@@ -16,6 +15,7 @@ use App\Http\Controllers\Api\AdminstratorControoler;
 use App\Http\Controllers\Api\MedicalImageController;
 use App\Http\Controllers\Api\ReciptionistController;
 use App\Http\Controllers\Api\AdministratorController;
+use App\Http\Middleware\CorsMiddleware;
 
 // Route::get('/data',[Simple::class,'index']);
 // Route::get('/example', function (Request $request) {
@@ -36,7 +36,7 @@ use App\Http\Controllers\Api\AdministratorController;
 Route::options('/{any}', function () {
     return response('', 200)
         ->header('Access-Control-Allow-Origin', '*')
-        ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+        ->header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
         ->header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 })->where('any', '.*');
 

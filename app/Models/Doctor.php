@@ -33,6 +33,10 @@ class Doctor extends Model
     {
         return [];
     }
-  
+    public function consultations()
+    {
+        return $this->hasMany(ConsultationRequest::class, 'doctor_id', 'EmployeeID');
+    }
+
 }
 

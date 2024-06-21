@@ -33,7 +33,7 @@ class AuthController extends Controller
      */
     public function __construct() {
         $this->middleware('auth:api', ['except' => ['login', 'account']]);
-    }
+ }
     /**
      * Get a JWT via given credentials.
      *
@@ -42,7 +42,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'Email' => 'required|email',
+            'email' => 'required|email',
             'password' => 'required|string|min:6',
         ]);
 
@@ -54,7 +54,7 @@ class AuthController extends Controller
         }
 
         // Retrieve the user by email
-        $user = Account::where('acc_email', $request->Email)->first();
+        $user = Account::where('acc_email', $request->email)->first();
 
         // Check if the user exists
         if (!$user) {
@@ -68,7 +68,7 @@ class AuthController extends Controller
         }
 
         // Attempt authentication
-        if (!auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password])) {
+        if (!auth()->attempt(['acc_email' =>  $request->email, 'acc_password' => $request->password])) {
             return response()->json([
                 'status' => 'fail',
                 'message' => 'Unauthorized',
@@ -79,11 +79,12 @@ class AuthController extends Controller
         }
 
         // Retrieve the employee record
-        $employee = Employee::where('Email',  $request->Email)->first();
+        $employee = Employee::where('Email',  $request->email)->first();
 
         if ($employee && $employee->EmployeeType === 'admin') {
             // Authentication successful, return token
-            $token = auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password]);
+            $token = auth()->attempt(['acc_email' =>  $request->email, 'acc_password' => $request->password]);
+            $user -> makeHidden(['role', 'role_2']);
 
             // Return success response with token and user data
             return response()->json([
@@ -97,7 +98,8 @@ class AuthController extends Controller
             ]);
         }
         elseif ($employee && $employee->EmployeeType === 'doctor') {
-            $token = auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password]);
+            $token = auth()->attempt(['acc_email' =>  $request->email, 'acc_password' => $request->password]);
+            $user -> makeHidden(['role', 'role_2']);
 
         // Return success response with token and user data
         return response()->json([
@@ -110,7 +112,8 @@ class AuthController extends Controller
             ],
         ]);}
         elseif ($employee && $employee->EmployeeType === 'receptionist') {
-            $token = auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password]);
+            $token = auth()->attempt(['acc_email' =>  $request->email, 'acc_password' => $request->password]);
+            $user -> makeHidden(['role', 'role_2']);
 
         // Return success response with token and user data
         return response()->json([
@@ -123,7 +126,8 @@ class AuthController extends Controller
             ],
         ]);}
         elseif ($employee && $employee->EmployeeType === 'nurse') {
-            $token = auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password]);
+            $token = auth()->attempt(['acc_email' =>  $request->email, 'acc_password' => $request->password]);
+            $user -> makeHidden(['role', 'role_2']);
 
         // Return success response with token and user data
         return response()->json([
@@ -135,8 +139,79 @@ class AuthController extends Controller
                 'user' => auth()->user(),
             ],
         ]);}
-        elseif ($employee && $employee->EmployeeType === 'pharmacy') {
-            $token = auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password]);
+        elseif ($employee && $employee->EmployeeType === 'pharmacist') {
+            $token = auth()->attempt(['acc_email' =>  $request->email, 'acc_password' => $request->password]);
+            $user -> makeHidden(['role', 'role_2']);
+
+        // Return success response with token and user data
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => Auth::factory()->getTTL() * 60,
+                'user' => auth()->user(),
+            ],
+        ]);}
+        elseif ($employee && $employee->EmployeeType === 'radiologist') {
+            $token = auth()->attempt(['acc_email' =>  $request->email, 'acc_password' => $request->password]);
+            $user -> makeHidden(['role', 'role_2']);
+
+        // Return success response with token and user data
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => Auth::factory()->getTTL() * 60,
+                'user' => auth()->user(),
+            ],
+        ]);}
+        elseif ($employee && $employee->EmployeeType === 'lab') {
+            $token = auth()->attempt(['acc_email' =>  $request->email, 'acc_password' => $request->password]);
+            $user -> makeHidden(['role', 'role_2']);
+
+        // Return success response with token and user data
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => Auth::factory()->getTTL() * 60,
+                'user' => auth()->user(),
+            ],
+        ]);}
+        elseif ($employee && $employee->EmployeeType === 'lab-admin') {
+            $token = auth()->attempt(['acc_email' =>  $request->email, 'acc_password' => $request->password]);
+            $user -> makeHidden(['role', 'role_2']);
+
+        // Return success response with token and user data
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => Auth::factory()->getTTL() * 60,
+                'user' => auth()->user(),
+            ],
+        ]);}
+        elseif ($employee && $employee->EmployeeType === 'nurse-admin') {
+            $token = auth()->attempt(['acc_email' =>  $request->email, 'acc_password' => $request->password]);
+            $user -> makeHidden(['role', 'role_2']);
+
+        // Return success response with token and user data
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'bearer',
+                'expires_in' => Auth::factory()->getTTL() * 60,
+                'user' => auth()->user(),
+            ],
+        ]);}
+        elseif ($employee && $employee->EmployeeType === 'radiologist-admin') {
+            $token = auth()->attempt(['acc_email' =>  $request->email, 'acc_password' => $request->password]);
+            $user -> makeHidden(['role', 'role_2']);
 
         // Return success response with token and user data
         return response()->json([
@@ -150,7 +225,8 @@ class AuthController extends Controller
         ]);}
         else {
             // Attempt authentication for non-administrator users
-            $token = auth()->attempt(['acc_email' =>  $request->Email, 'acc_password' => $request->password]);
+            $token = auth()->attempt(['acc_email' =>  $request->email, 'acc_password' => $request->password]);
+            $user -> makeHidden(['role', 'role_2']);
 
             // Return success response with token and user data
             return response()->json([
@@ -163,6 +239,7 @@ class AuthController extends Controller
                 ],
             ]);
         }
+
     }
 
 
@@ -199,7 +276,7 @@ public function account(Request $request)
         $validator->validated(),
         ['EmployeeID' => $employee->EmployeeID, 'acc_password' => bcrypt($request->acc_password)]
     ));
-
+    $user -> makeHidden(['role', 'role_2']);
     return response()->json([
         'status' => 'success',
         'data' => [
@@ -211,12 +288,14 @@ public function account(Request $request)
 }
 
 
+
     /**
      * Log the user out (Invalidate the token).
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function logout() {
+    public function logout()
+    {
         auth()->logout();
         return response()->json(['message' => 'User successfully signed out']);
     }

@@ -11,10 +11,10 @@ class medicines extends Model
     protected $table = 'medicines';
 
     protected $fillable = [
-        
+
         'doctor_id',
         'patient_id',
-        'num_doses',
+        'name',
     ];
 
     public function doctor()

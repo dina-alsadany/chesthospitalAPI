@@ -47,13 +47,11 @@ class ReciptionistController extends Controller
          * @param  \Illuminate\Http\Request  $request
          * @return \Illuminate\Http\JsonResponse
          */
-        public function searchOrCreatePatient(Request $request)
+        public function searchPatient(Request $request, $national_id)
         {
-            $validator = Validator::make($request->all(), [
-                'F_Name' => 'sometimes|string|max:100',
-                'L_Name' => 'sometimes|string|max:100',
-                'Email' => 'sometimes|email|max:100',
-                'Phone_Number' => 'sometimes|string|max:15',
+            // Validate the national_id parameter
+            $validator = Validator::make(['id' => $national_id], [
+                'id' => 'required|string|max:11', // Assuming national_id is a string with max length 11
             ]);
 
             // If validation fails, return a JSON response with errors
@@ -64,114 +62,88 @@ class ReciptionistController extends Controller
                 ], 400);
             }
 
-            // Ensure at least one valid search parameter is provided
-            if (!($request->filled(['national_id']) )) {
-                return response()->json([
-                    'status' => 'fail',
-                    'data' => [
-                        'warning' => ['you should serach with patient national id.']
-                    ],
-                ], 400);
-            }
-
             // Build the query based on provided search parameters
             $query = Patient::query();
 
-            if ($request->filled(['F_Name', 'L_Name'])) {
-                $query->where('F_Name', 'LIKE', '%' . $request->F_Name . '%')
-                      ->where('L_Name', 'LIKE', '%' . $request->L_Name . '%');
-            }
-
-            if ($request->filled('Email')) {
-                $query->where('Email', 'LIKE', '%' . $request->Email . '%');
-            }
-
-            if ($request->filled('Phone_Number')) {
-                $query->where('Phone_Number', 'LIKE', '%' . $request->Phone_Number . '%');
+            if (!empty($national_id)) {
+                $query->where('national_id', 'LIKE', '%' . $national_id . '%');
             }
 
             // Execute the query and get the results
-            $patient = $query->get();
+            $patients = $query->get();
 
-            // Check if any patient were found and return the appropriate response
-            if ($patient->isEmpty()) {
-                $searchType = '';
-                if ($request->filled(['F_Name', 'L_Name'])) {
-                    $searchType = 'first name and last name';
-                }
-                if ($request->filled('Email')) {
-                    $searchType .= ($searchType ? ', ' : '') . 'email';
-                }
-                if ($request->filled('Phone_Number')) {
-                    $searchType .= ($searchType ? ', ' : '') . 'phone number';
-                }
-
+            // Check if any patients were found and return the appropriate response
+            if ($patients->isEmpty()) {
                 return response()->json([
                     'status' => 'fail',
                     'data' => [
-                        'search' => ["No patient found with the provided $searchType."]
+                        'search' => ["No patient found with the provided national ID."]
                     ],
                 ], 404);
             }
 
+            // Optionally, hide certain attributes if needed
+            $patients->makeHidden(['hos_ID', 'DoctorID', 'NurseID', 'MR_ID']);
+
             // Return the search results
             return response()->json([
                 'status' => 'success',
-                'data' => $patient,
+                'data' => $patients,
             ], 200);
         }
+
          /**
          * Search for a patient by ID or phone number, and create if not found.
          *
          * @param  \Illuminate\Http\Request  $request
          * @return \Illuminate\Http\JsonResponse
          */
-        public function CreatePatient(Request $request)
-        {
-        $validator = Validator::make($request->all(), [
+        public function createPatient(Request $request)
+    {
+        // Map incoming request fields to model attributes
+        $data = [
+            'name' => $request->input('name'),
+            'Phone_Number' => $request->input('phone'),
+            'address' => $request->input('address'),
+            'Email' => $request->input('email'),
+            'national_id' => $request->input('id'),
+            'dateOfBirth' => $request->input('dateOfBirth'),
+        ];
+
+        $validator = Validator::make($data, [
             'name' => [
                 'required',
                 'max:100',
-                Rule::unique('patient')->where(function ($query) use ($request) {
-                    return $query->where('name', $request->name);
+                Rule::unique('patient')->where(function ($query) use ($data) {
+                    return $query->where('name', $data['name']);
                 }),
             ],
-
             'Phone_Number' => [
                 'required',
                 'string',
                 'min:11',
-                Rule::unique('patient')->where(function ($query) use ($request) {
-                    return $query->where('Phone_Number', $request->Phone_Number);
+                Rule::unique('patient')->where(function ($query) use ($data) {
+                    return $query->where('Phone_Number', $data['Phone_Number']);
                 }),
             ],
             'address' => 'required|string|min:6',
-
-            // 'Email' => [
-            //     'required',
-            //     'email',
-            //     'max:100',
-            //     Rule::unique('patient')->where(function ($query) use ($request) {
-            //         return $query->where('Email', $request->Email);
-            //     }),
-            // ],
-            // 'AccHome' => 'required|boolean',
-            // 'Accwork' => 'required|boolean',
-            // 'Accstreet' => 'required|boolean',
-            'Medical_History' => 'required|string|min:6',
-            // 'hos_ID'=> 'exists:hospital,hos_ID|nullable',
-            // 'DoctorID'=> 'exists:doctor,DoctorID|nullable',
-            // 'NurseID'=> 'exists:nurse,NurseID|nullable',
-            // 'MR_ID'=> 'exists:medical_record,MR_ID|nullable',
+            'Email' => [
+                'required',
+                'email',
+                'max:100',
+                Rule::unique('patient')->where(function ($query) use ($data) {
+                    return $query->where('Email', $data['Email']);
+                }),
+            ],
             'national_id' => [
                 'required',
                 'string',
                 'min:11',
-                Rule::unique('patient')->where(function ($query) use ($request) {
-                    return $query->where('national_id', $request->national_id);
+                Rule::unique('patient')->where(function ($query) use ($data) {
+                    return $query->where('national_id', $data['national_id']);
                 }),
             ],
-            'dateOfBirth'=>'required|date_format:Y-m-d'
+            'dateOfBirth' => 'required|date_format:Y-m-d',
         ]);
 
         if ($validator->fails()) {
@@ -184,13 +156,26 @@ class ReciptionistController extends Controller
         // Create the new patient
         $patient = Patient::create($validator->validated());
 
+        // Construct the response data
+        $responseData = [
+            'Pat_ID' => $patient->Pat_ID, // Assuming `Pat_ID` is the primary key
+            'name' => $patient->name,
+            'Phone_Number' => $patient->Phone_Number,
+            'Email' => $patient->Email,
+            'dateOfBirth' => $patient->dateOfBirth,
+            'address' => $patient->address,
+        ];
+
         return response()->json([
             'status' => 'success',
             'data' => [
                 'message' => 'Patient successfully registered',
-                'patient' => $patient,
+                'patient' => $responseData,
             ],
         ], 201);
     }
-
 }
+
+
+
+

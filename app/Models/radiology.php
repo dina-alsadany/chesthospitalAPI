@@ -13,7 +13,7 @@ class radiology extends Model
 
         'doctor_id',
         'patient_id',
-        'radiology name',
+        'radiology_name',
         'description'
     ];
 

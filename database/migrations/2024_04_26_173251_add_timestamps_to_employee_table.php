@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('employee', function (Blueprint $table) {
             $table->timestamps();
+            
         });
     }
 

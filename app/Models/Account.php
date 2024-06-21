@@ -41,6 +41,7 @@ class Account extends Authenticatable implements JWTSubject
     protected $hidden = [
         'acc_password',
         'remember_token',
+        'role_2'
     ];
 
     /**
@@ -110,4 +111,31 @@ class Account extends Authenticatable implements JWTSubject
         // Assuming 'acc_type' column is used to differentiate account types
         return $this->acc_type === 'pharmacy';
     }
+
+    public function isRadiologist()
+    {
+        // Assuming 'acc_type' column is used to differentiate account types
+        return $this->acc_type === 'radiologist';
+    }
+    public function isLab()
+    {
+        // Assuming 'acc_type' column is used to differentiate account types
+        return $this->acc_type === 'lab';
+    }
+    public function isLabAdmin()
+    {
+        // Assuming 'acc_type' column is used to differentiate account types
+        return $this->acc_type === 'lab-admin';
+    }
+    public function isNurseAdmin()
+    {
+        // Assuming 'acc_type' column is used to differentiate account types
+        return $this->acc_type === 'nurse-admin';
+    }
+    public function isRadiologistAdmin()
+    {
+        // Assuming 'acc_type' column is used to differentiate account types
+        return $this->acc_type === 'radiologist-admin';
+    }
+
 }

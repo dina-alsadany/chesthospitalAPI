@@ -2,6 +2,7 @@
 
 namespace App\Http;
 
+use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -13,6 +14,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \App\Http\Middleware\TrustProxies::class,
         \App\Http\Middleware\CheckRole::class,
+        \App\Http\Middleware\CorsMiddleware::class,
 
     ];
 
@@ -23,6 +25,8 @@ class Kernel extends HttpKernel
             \Illuminate\Session\Middleware\StartSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            HandleCors::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
@@ -37,14 +41,24 @@ class Kernel extends HttpKernel
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.api' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
         'api' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
-        //'role' => \App\Http\Middleware\CheckRole::class,
+        'role' => \App\Http\Middleware\CheckRole::class,
         'admin' => \App\Http\Middleware\CheckAdministrator::class,
     'doctor' => \App\Http\Middleware\CheckDoctor::class,
 'employeeType' => \App\Http\Middleware\CheckEmployeeType::class,
 'receptionist' => \App\Http\Middleware\CheckReceptionist::class,
 'pharmacy' => \App\Http\Middleware\CheckPharmacy::class,
 
-'check.role' => \App\Http\Middleware\CheckRole::class,
+'CheckRole' => \App\Http\Middleware\CheckRole::class,
+'radiologist' => \App\Http\Middleware\CheckRadiologist::class,
+'lab' => \App\Http\Middleware\CheckLab::class,
+'lab-admin' => \App\Http\Middleware\CheckLabAdmin::class,
+'nurse-admin' => \App\Http\Middleware\CheckNurseAdmin::class,
+'radiologist-admin' => \App\Http\Middleware\CheckRadiologistAdmin::class,
+
+
+
+
+
 ];
 
     protected $middlewarePriority = [

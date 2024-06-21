@@ -15,22 +15,13 @@ class Patient extends Model
         'name',
         'Phone_Number',
         'address',
-        // 'Street',
-        // 'Email',
-        // 'AccHome',
-        // 'Accwork',
-        // 'Accstreet',
-        'Medical_History',
-        // 'hos_ID',
-        // 'DoctorID',
-        // 'NurseID',
-        // 'MR_ID',
         'national_id',
-        'dateOfBirth'
+        'dateOfBirth',
+        'Email' // Added Email to fillable
     ];
     public function register()
     {
-        return $this->hasOne(register::class, 'pat_id');
+        return $this->hasOne(Register::class, 'pat_id');
     }
     protected $casts = [
         'created_at' => 'datetime',
@@ -45,4 +36,8 @@ class Patient extends Model
     {
         return [];
     }
+    public function medicineRequests()
+{
+    return $this->hasMany(medicinerequests::class, 'patientId', 'Pat_ID');
+}
 }

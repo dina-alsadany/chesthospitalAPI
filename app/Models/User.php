@@ -90,4 +90,8 @@ class User extends Authenticatable
 {
     return $this->acc_password;
 }
+public function pharmacy()
+{
+    return $this->hasOne(Pharmacy::class, 'user_id'); // Adjust 'user_id' to match your database schema
+}
 }

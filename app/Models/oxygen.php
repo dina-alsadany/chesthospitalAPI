@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class oxygen extends Model
 {
     use HasFactory;
-    protected $table = 'oxygens';
+    protected $table = 'oxygenrequests';
     protected $fillable = [
 
-        'doctor_id',
-        'patient_id',
-        'num_levels',
+        'patientId',
+        'doctorId',
+        'oxygenLevel',
+        'name'
     ];
 
     public function doctor()

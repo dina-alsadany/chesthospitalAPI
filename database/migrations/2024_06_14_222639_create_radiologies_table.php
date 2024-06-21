@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id();
             $table->integer('doctor_id');
             $table->integer('patient_id');
-            $table->string('radiology name');
+            $table->string('radiology_name');
             $table->string('description'); // Column for the number of doses
             $table->timestamps(); // Assuming maximum three doses
 
             // Foreign key constraints
-            $table->foreign('doctor_id')->references('DoctorID')->on('doctor');
+            $table->foreign('doctor_id')->references('EmployeeID')->on('employee');
             $table->foreign('patient_id')->references('Pat_ID')->on('patient');
         });
     }

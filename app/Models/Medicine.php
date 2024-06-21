@@ -13,8 +13,7 @@ class Medicine extends Model
     protected $fillable = [
         'MedName',
         'MDescription',
-        'Dosage_instructions',
-        'Pharmacy_ID',
+        'EmployeeID',
     ];
 
     protected $casts = [
@@ -30,5 +29,10 @@ class Medicine extends Model
     {
         return [];
     }
+    public function requests()
+{
+    return $this->hasMany(medicinerequests::class, 'medicine', 'MedName');
+}
+
 }
 

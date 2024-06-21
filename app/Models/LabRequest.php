@@ -8,18 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class LabRequest extends Model
 {
     use HasFactory;
-    protected $table = 'lab_requests';
+    protected $table = 'labrequests';
     protected $fillable = [
-        'doctor_id',
-        'patient_id',
-        'lab_name',
+        'patientId',
+        'doctorId',
+        'name',
         'description',
+        'completed',
+
     ];
 
-    public function doctor()
-    {
-        return $this->belongsTo(Doctor::class);
-    }
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     public function patient()
     {

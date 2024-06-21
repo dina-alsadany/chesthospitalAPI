@@ -13,9 +13,6 @@ class pharmacy extends Model
     protected $fillable = [
         'Mediciene_Availabilty',
         'hos_ID',
-
-
-
     ];
 
     protected $casts = [
@@ -28,8 +25,14 @@ class pharmacy extends Model
         return $this->getKey();
     }
 
+
     public function getJWTCustomClaims()
     {
         return [];
     }
+    public function addMedicine()
+{
+    return $this->hasMany(Medicine::class, 'Pharmacy_ID', 'EmployeeID');
+}
+
 }
